@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Cytoscape Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <style>
+    #cy {
+      width: 800px;
+      height: 600px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>Live Neural Network Visualization</h1>
+  <div id="cy"></div>
+  <button id="start">Start Training</button>
+  <script>
+    // Initialize Cytoscape
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: [],
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color': '#666',
+            label: 'data(id)'
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 3,
+            'line-color': '#ccc',
+            label: 'data(gradient)'
+          }
+        }
+      ],
+      layout: {
+        name: 'grid'
+      }
+    });
+
+    // Connect to the WebSocket server
+    const socket = io();
+
+    // Add event listener for the start button
+    document.getElementById('start').addEventListener('click', () => {
+      socket.emit('start_training');
+      console.log('Training started');
+    });
+
+    // Listen for training updates
+    socket.on('training_update', (data) => {
+      // Update the graph with new data
+      cy.elements().remove(); // Clear existing elements
+      
+      // Add nodes
+      data.nodes.forEach(node => {
+        cy.add({
+          group: 'nodes',
+          data: { 
+            id: node.id,
+            gradient: node.gradient_norm
+          }
+        });
+      });
+
+      // Add edges
+      data.edges.forEach(edge => {
+        cy.add({
+          group: 'edges',
+          data: {
+            source: edge.source,
+            target: edge.target,
+            gradient: edge.gradient_norm
+          }
+        });
+      });
+
+      cy.layout({ name: 'grid' }).run();
+    });
+  </script>
+</body>
+</html>

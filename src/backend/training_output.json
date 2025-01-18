@@ -2,50 +2,14 @@
     "nodes": [
         {
             "id": "Linear",
-            "gradient_norm": 0.804419219493866
-        },
-        {
-            "id": "Linear",
-            "gradient_norm": 0.804419219493866
-        },
-        {
-            "id": "Linear",
-            "gradient_norm": 0.5383095741271973
-        },
-        {
-            "id": "Linear",
-            "gradient_norm": 0.5383095741271973
-        },
-        {
-            "id": "Linear",
-            "gradient_norm": 0.9552891254425049
-        },
-        {
-            "id": "Linear",
-            "gradient_norm": 0.9552891254425049
-        },
-        {
-            "id": "Linear",
-            "gradient_norm": 3.698314666748047
-        },
-        {
-            "id": "Linear",
-            "gradient_norm": 3.698314666748047
-        },
-        {
-            "id": "Linear",
-            "gradient_norm": 2.923494815826416
-        },
-        {
-            "id": "Linear",
-            "gradient_norm": 2.923494815826416
+            "gradient_norm": 0.6400103569030762
         }
     ],
     "edges": [
         {
             "source": "fc1",
             "target": "fc2",
-            "gradient_norm": 2.923494815826416
+            "gradient_norm": 0.6400103569030762
         }
     ]
 }
