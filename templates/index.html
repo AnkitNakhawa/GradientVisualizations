@@ -1,24 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Cytoscape Visualization</title>
+  <meta charset="UTF-8" />
+  <title>Live Network Visualization</title>
+
+  <!-- Cytoscape -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
+  <!-- Socket.IO -->
   <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <!-- Dagre + cytoscape-dagre (for layered layouts) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+
   <style>
     #cy {
       width: 800px;
       height: 600px;
-      border: 1px solid #ddd;
+      border: 1px solid #aaa;
     }
   </style>
 </head>
 <body>
-  <h1>Live Neural Network Visualization</h1>
+  <h1>Generic Multi-Layer Visualization</h1>
   <div id="cy"></div>
   <button id="start">Start Training</button>
+
   <script>
+    // Connect to Socket.IO
+    const socket = io();
+
     // Initialize Cytoscape
     const cy = cytoscape({
       container: document.getElementById('cy'),
@@ -28,7 +38,9 @@
           selector: 'node',
           style: {
             'background-color': '#666',
-            label: 'data(id)'
+            'label': 'data(id)',
+            'text-valign': 'center',
+            'color': '#fff'
           }
         },
         {
@@ -36,34 +48,48 @@
           style: {
             'width': 3,
             'line-color': '#ccc',
-            label: 'data(gradient)'
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': '#ccc',
+            'curve-style': 'bezier',
+            'label': 'data(gradient)'
           }
         }
       ],
       layout: {
-        name: 'grid'
+        name: 'dagre',
+        rankDir: 'LR',
+        padding: 50,
+        spacingFactor: 1.5
       }
     });
 
-    // Connect to the WebSocket server
-    const socket = io();
-
-    // Add event listener for the start button
-    document.getElementById('start').addEventListener('click', () => {
-      socket.emit('start_training');
-      console.log('Training started');
+    // Socket event handlers
+    socket.on('connect', () => {
+      console.log('Connected to Socket.IO server');
     });
 
-    // Listen for training updates
-    socket.on('training_update', (data) => {
-      // Update the graph with new data
-      cy.elements().remove(); // Clear existing elements
-      
+    socket.on('connect_error', err => {
+      console.error('Connection error:', err);
+    });
+
+    // Start training on button click
+    document.getElementById('start').addEventListener('click', () => {
+      console.log('Start Training button clicked; emitting "start_training"');
+      socket.emit('start_training');
+    });
+
+    // Update the graph each time we get a new "training_update"
+    socket.on('training_update', data => {
+      console.log('Received training_update:', data);
+
+      // Clear existing elements
+      cy.elements().remove();
+
       // Add nodes
       data.nodes.forEach(node => {
         cy.add({
           group: 'nodes',
-          data: { 
+          data: {
             id: node.id,
             gradient: node.gradient_norm
           }
@@ -82,7 +108,13 @@
         });
       });
 
-      cy.layout({ name: 'grid' }).run();
+      // Re-run layout
+      cy.layout({
+        name: 'dagre',
+        rankDir: 'LR',
+        padding: 50,
+        spacingFactor: 3.5
+      }).run();
     });
   </script>
 </body>

@@ -3,106 +3,130 @@ from flask_socketio import SocketIO
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import time
 import json
 import os
 
-# Get absolute path to templates directory
 template_dir = os.path.abspath(os.path.join(os.getcwd(), 'templates'))
 app = Flask(__name__, template_folder=template_dir)
-socketio = SocketIO(app)
+# The async_mode can be 'eventlet', 'gevent', or None (auto-detect).
+# If you have eventlet installed, you can set socketio = SocketIO(app, async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Define a simple model
-class SimpleModel(nn.Module):
+# ----------------------------------------------------------------
+# Example multi-layer model. Change or expand as needed.
+# ----------------------------------------------------------------
+class MultiLayerModel(nn.Module):
     def __init__(self):
-        super(SimpleModel, self).__init__()
-        self.fc1 = nn.Linear(4, 3)
-        self.fc2 = nn.Linear(3, 2)
+        super(MultiLayerModel, self).__init__()
+        self.fc1 = nn.Linear(4, 16)
+        self.fc2 = nn.Linear(16, 8)
+        self.fc3 = nn.Linear(8, 8)
+        self.fc4 = nn.Linear(8, 1)
 
     def forward(self, x):
         x = self.fc1(x)
         x = torch.relu(x)
         x = self.fc2(x)
+        x = torch.relu(x)
+        x = self.fc3(x)
+        x = torch.relu(x)
+        x = self.fc4(x)
         return x
 
-# Training setup
-model = SimpleModel()
+model = MultiLayerModel()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 criterion = nn.MSELoss()
 
-# Gradient data to send to frontend
+# We'll send this to the front-end
 training_data = {"nodes": [], "edges": []}
 
-# Hook to capture gradient norms
-def backward_hook(module, grad_input, grad_output):
-    if hasattr(module, 'weight') and module.weight.grad is not None:
-        training_data["nodes"].append({
-            "id": module.__class__.__name__,
-            "gradient_norm": module.weight.grad.norm().item()
-        })
+# 1) Gather all Linear layers
+linear_layers = []
+for name, module in model.named_modules():
+    if isinstance(module, nn.Linear):
+        linear_layers.append(name)
 
-# Register hooks
+# 2) We'll keep a dict to store gradient norms
+grad_dict = {}
+
+# Hook to capture each Linear layer's gradient
+def backward_hook(module, grad_input, grad_output):
+    if getattr(module, "weight", None) is not None and module.weight.grad is not None:
+        # Find which layer name this module corresponds to
+        for name, m in model.named_modules():
+            if m is module:
+                grad_dict[name] = module.weight.grad.norm().item()
+                break
+
+# 3) Register the hook on all linear layers
 for name, module in model.named_modules():
     if isinstance(module, nn.Linear):
         module.register_full_backward_hook(backward_hook)
 
-# Training function
-def train_model():
-    for epoch in range(30):  # Simulate 5 epochs
+def train_model(num_epochs):
+    """
+    Run training for num_epochs. After each epoch:
+      - The backward hook has stored gradient norms in grad_dict
+      - We build the 'nodes' and 'edges'
+      - We emit 'training_update' so the front-end can re-render
+      - We use socketio.sleep(...) to avoid blocking
+    """
+    for epoch in range(num_epochs):
+        # Clear gradient data
+        grad_dict.clear()
+
+        # Standard training step
         optimizer.zero_grad()
         x = torch.randn(1, 4)
-        target = torch.randn(1, 2)
+        target = torch.randn(1, 1)
         output = model(x)
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
 
-        # Capture weight norms as edges
-        training_data["edges"] = [
-            {"source": "fc1", "target": "fc2", "gradient_norm": model.fc2.weight.grad.norm().item()}
+        # Build training_data from grad_dict
+        # (Nodes: each layer with gradient)
+        training_data["nodes"] = [
+            {
+                "id": layer_name,
+                "gradient_norm": grad_dict.get(layer_name, 0.0)
+            }
+            for layer_name in linear_layers
         ]
 
-        # Emit the training data to the frontend
-        socketio.emit('update', training_data)
+        # Build edges between consecutive linear layers
+        training_data["edges"] = []
+        for i in range(len(linear_layers) - 1):
+            source = linear_layers[i]
+            target = linear_layers[i + 1]
+            target_grad = grad_dict.get(target, 0.0)
+            training_data["edges"].append({
+                "source": source,
+                "target": target,
+                "gradient_norm": target_grad
+            })
 
-        time.sleep(1)
-
-# Route to serve the frontend
-@app.route('/')
-def index():
-    print("Template directory:", template_dir)
-    print("Current working directory:", os.getcwd())
-    return render_template('index.html')
-
-# Add training route handler
-@socketio.on('start_training')
-def handle_training_start():
-    print("Training started")
-    # Simulate training loop
-    for epoch in range(5):  # Simulate 5 epochs
-        # Reset training data for each iteration
-        training_data["nodes"] = []
-        
-        optimizer.zero_grad()
-        x = torch.randn(1, 4)
-        target = torch.randn(1, 2)
-        output = model(x)
-        loss = criterion(output, target)
-        loss.backward()
-        optimizer.step()
-
-        # Capture weight norms as edges
-        training_data["edges"] = [
-            {"source": "fc1", "target": "fc2", "gradient_norm": model.fc2.weight.grad.norm().item()}
-        ]
-        
-        # Save training data to JSON file
+        # Optionally save to JSON (this will overwrite each epoch)
         with open('src/backend/training_output.json', 'w') as f:
             json.dump(training_data, f, indent=4)
-        
-        # Emit the updated data
+
+        # Emit the data for this epoch
         socketio.emit('training_update', training_data)
-        time.sleep(1)
+        print(f"Epoch {epoch+1}/{num_epochs} complete. Emitted training_update.")
+
+        # Yield to let Socket.IO push the update
+        socketio.sleep(1)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@socketio.on('start_training')
+def handle_training_start():
+    print("Received 'start_training'.")
+    train_model(num_epochs=30)
+    print("Training completed.")
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    print("Running Flask-SocketIO on port 5000...")
+    socketio.run(app, debug=True, port=5000)

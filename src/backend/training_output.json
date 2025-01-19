@@ -1,15 +1,37 @@
 {
     "nodes": [
         {
-            "id": "Linear",
-            "gradient_norm": 0.6400103569030762
+            "id": "fc1",
+            "gradient_norm": 0.0
+        },
+        {
+            "id": "fc2",
+            "gradient_norm": 0.08075147867202759
+        },
+        {
+            "id": "fc3",
+            "gradient_norm": 0.6266171336174011
+        },
+        {
+            "id": "fc4",
+            "gradient_norm": 0.24166180193424225
         }
     ],
     "edges": [
         {
             "source": "fc1",
             "target": "fc2",
-            "gradient_norm": 0.6400103569030762
+            "gradient_norm": 0.08075147867202759
+        },
+        {
+            "source": "fc2",
+            "target": "fc3",
+            "gradient_norm": 0.6266171336174011
+        },
+        {
+            "source": "fc3",
+            "target": "fc4",
+            "gradient_norm": 0.24166180193424225
         }
     ]
 }
