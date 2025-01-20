@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Live Network Visualization</title>
+  <title>Gradient Visualization (10-Layer Model)</title>
 
   <!-- Cytoscape -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
@@ -13,21 +13,72 @@
   <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
 
   <style>
+    /* Overall page styles */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000000;
+      color: white;
+      font-family: "Optimist", sans-serif;
+    }
+
+    h1 {
+      margin: 1rem;
+      font-family: "Optimist", sans-serif;
+      color: white;
+    }
+
+    button {
+      margin: 0 1rem;
+      padding: 0.5rem 1rem;
+      background-color: #333;
+      color: white;
+      border: 1px solid #fff;
+      font-family: "Optimist", sans-serif;
+      cursor: pointer;
+    }
+
     #cy {
-      width: 800px;
-      height: 600px;
-      border: 1px solid #aaa;
+      width: 1920px;
+      height: 1080px;
+      margin: 1rem;
+      border: 1px solid #fff;
+      background-color: black; /* keep the cytoscape background black */
     }
   </style>
 </head>
 <body>
-  <h1>Generic Multi-Layer Visualization</h1>
-  <div id="cy"></div>
+  <h1>Gradient Visualization (10-Layer Model)</h1>
   <button id="start">Start Training</button>
+  <div id="cy"></div>
 
   <script>
-    // Connect to Socket.IO
+    // Socket.IO connection
     const socket = io();
+
+    // We'll store a color for each node so it doesn't change each epoch
+    const nodeColors = {};
+    // A set of pastel/light colors to pick from randomly
+    const colorChoices = [
+      '#FFB6C1', // LightPink
+      '#FFD700', // Gold
+      '#ADFF2F', // GreenYellow
+      '#87CEFA', // LightSkyBlue
+      '#EE82EE', // Violet
+      '#DA70D6', // Orchid
+      '#FFC0CB', // Pink
+      '#FFFACD', // LemonChiffon
+      '#E0FFFF', // LightCyan
+      '#98FB98', // PaleGreen
+      '#D8BFD8', // Thistle
+      '#AFEEEE', // PaleTurquoise
+    ];
+
+    // Helper to get a random pastel color
+    function getRandomPastelColor() {
+      const idx = Math.floor(Math.random() * colorChoices.length);
+      return colorChoices[idx];
+    }
 
     // Initialize Cytoscape
     const cy = cytoscape({
@@ -35,86 +86,137 @@
       elements: [],
       style: [
         {
+          // Node style
           selector: 'node',
           style: {
-            'background-color': '#666',
+            'width': 150,
+            'height': 150,
+            'background-color': 'data(nodeColor)', // We'll store color in data
             'label': 'data(id)',
+            'color': '#000000',
             'text-valign': 'center',
-            'color': '#fff'
+            'font-family': 'Optimist, sans-serif',
+            'font-size': '36px'
           }
         },
         {
+          // Edge style
           selector: 'edge',
           style: {
-            'width': 3,
-            'line-color': '#ccc',
+            'width': 8,
+            'line-color': 'data(color)',         // from edge.data('color')
             'target-arrow-shape': 'triangle',
-            'target-arrow-color': '#ccc',
+            'target-arrow-color': 'data(color)', // match line color
             'curve-style': 'bezier',
-            'label': 'data(gradient)'
+            // We'll show the gradient_norm as the label
+            'label': 'data(gradient)',
+            'font-size': '24px',                 // requested: 10px
+            'color': '#fff',
+            'font-family': 'Optimist, sans-serif',
+            'text-rotation': 'autorotate'
           }
         }
       ],
       layout: {
-        name: 'dagre',
-        rankDir: 'LR',
-        padding: 50,
-        spacingFactor: 1.5
+        name: 'preset' // We'll run dagre once after the first update
       }
     });
 
-    // Socket event handlers
-    socket.on('connect', () => {
-      console.log('Connected to Socket.IO server');
-    });
+    // Allow user to drag nodes
+    cy.userZoomingEnabled(true);
+    cy.userPanningEnabled(true);
+    cy.nodes().grabify();
 
-    socket.on('connect_error', err => {
-      console.error('Connection error:', err);
-    });
+    let initialLayoutDone = false;
 
-    // Start training on button click
+    // Button -> start training
     document.getElementById('start').addEventListener('click', () => {
-      console.log('Start Training button clicked; emitting "start_training"');
+      console.log('Emitting "start_training" to server...');
       socket.emit('start_training');
     });
 
-    // Update the graph each time we get a new "training_update"
-    socket.on('training_update', data => {
+    // On each "training_update", refresh the graph
+    socket.on('training_update', (data) => {
       console.log('Received training_update:', data);
 
-      // Clear existing elements
-      cy.elements().remove();
+      // 1) Update / add nodes
+      const newNodeIds = new Set();
+      data.nodes.forEach((node) => {
+        const { id, gradient_norm } = node;
+        newNodeIds.add(id);
 
-      // Add nodes
-      data.nodes.forEach(node => {
-        cy.add({
-          group: 'nodes',
-          data: {
-            id: node.id,
-            gradient: node.gradient_norm
-          }
-        });
+        // Assign a random color if this node is new
+        if (!nodeColors[id]) {
+          nodeColors[id] = getRandomPastelColor();
+        }
+
+        const existingNode = cy.getElementById(id);
+        if (existingNode.nonempty()) {
+          existingNode.data('gradient', gradient_norm);
+          // Keep the existing nodeColor
+        } else {
+          cy.add({
+            group: 'nodes',
+            data: {
+              id: id,
+              gradient: gradient_norm,
+              nodeColor: nodeColors[id]
+            }
+          });
+        }
       });
 
-      // Add edges
-      data.edges.forEach(edge => {
-        cy.add({
-          group: 'edges',
-          data: {
-            source: edge.source,
-            target: edge.target,
-            gradient: edge.gradient_norm
-          }
-        });
+      // Remove nodes not in new data
+      cy.nodes().forEach((n) => {
+        if (!newNodeIds.has(n.id())) {
+          cy.remove(n);
+        }
       });
 
-      // Re-run layout
-      cy.layout({
-        name: 'dagre',
-        rankDir: 'LR',
-        padding: 50,
-        spacingFactor: 3.5
-      }).run();
+      // 2) Update / add edges
+      const newEdgeKeys = new Set();
+      const edgeKey = (src, tgt) => `${src}-->${tgt}`;
+
+      data.edges.forEach((edge) => {
+        const { source, target, gradient_norm, color } = edge;
+        const key = edgeKey(source, target);
+        newEdgeKeys.add(key);
+
+        const existingEdge = cy.edges(`[source="${source}"][target="${target}"]`);
+        if (existingEdge.nonempty()) {
+          existingEdge.data('gradient', gradient_norm);
+          existingEdge.data('color', color);
+        } else {
+          cy.add({
+            group: 'edges',
+            data: {
+              source,
+              target,
+              gradient: gradient_norm,
+              color: color
+            }
+          });
+        }
+      });
+
+      // Remove old edges not in the new data
+      cy.edges().forEach((e) => {
+        const key = edgeKey(e.data('source'), e.data('target'));
+        if (!newEdgeKeys.has(key)) {
+          cy.remove(e);
+        }
+      });
+
+      // 3) Run dagre layout ONCE if not done
+      if (!initialLayoutDone) {
+        cy.layout({
+          name: 'dagre',
+          rankDir: 'LR',
+          spacingFactor: 3.5,
+          padding: 50
+        }).run();
+        initialLayoutDone = true;
+      }
     });
   </script>
 </body>

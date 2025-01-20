@@ -6,32 +6,95 @@
         },
         {
             "id": "fc2",
-            "gradient_norm": 0.08075147867202759
+            "gradient_norm": 0.0003537742595653981
         },
         {
             "id": "fc3",
-            "gradient_norm": 0.6266171336174011
+            "gradient_norm": 0.00038482414674945176
         },
         {
             "id": "fc4",
-            "gradient_norm": 0.24166180193424225
+            "gradient_norm": 0.0004522578965406865
+        },
+        {
+            "id": "fc5",
+            "gradient_norm": 0.0012981243198737502
+        },
+        {
+            "id": "fc6",
+            "gradient_norm": 0.0018908753991127014
+        },
+        {
+            "id": "fc7",
+            "gradient_norm": 0.0031867853831499815
+        },
+        {
+            "id": "fc8",
+            "gradient_norm": 0.01082836464047432
+        },
+        {
+            "id": "fc9",
+            "gradient_norm": 0.018497945740818977
+        },
+        {
+            "id": "fc10",
+            "gradient_norm": 0.036822348833084106
         }
     ],
     "edges": [
         {
             "source": "fc1",
             "target": "fc2",
-            "gradient_norm": 0.08075147867202759
+            "gradient_norm": 0.0003537742595653981,
+            "color": "grey"
         },
         {
             "source": "fc2",
             "target": "fc3",
-            "gradient_norm": 0.6266171336174011
+            "gradient_norm": 0.00038482414674945176,
+            "color": "grey"
         },
         {
             "source": "fc3",
             "target": "fc4",
-            "gradient_norm": 0.24166180193424225
+            "gradient_norm": 0.0004522578965406865,
+            "color": "grey"
+        },
+        {
+            "source": "fc4",
+            "target": "fc5",
+            "gradient_norm": 0.0012981243198737502,
+            "color": "grey"
+        },
+        {
+            "source": "fc5",
+            "target": "fc6",
+            "gradient_norm": 0.0018908753991127014,
+            "color": "grey"
+        },
+        {
+            "source": "fc6",
+            "target": "fc7",
+            "gradient_norm": 0.0031867853831499815,
+            "color": "grey"
+        },
+        {
+            "source": "fc7",
+            "target": "fc8",
+            "gradient_norm": 0.01082836464047432,
+            "color": "green"
+        },
+        {
+            "source": "fc8",
+            "target": "fc9",
+            "gradient_norm": 0.018497945740818977,
+            "color": "green"
+        },
+        {
+            "source": "fc9",
+            "target": "fc10",
+            "gradient_norm": 0.036822348833084106,
+            "color": "green"
         }
     ]
 }
