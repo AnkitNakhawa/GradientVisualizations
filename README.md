@@ -4,6 +4,7 @@
 
 This project is designed to visualize the gradients of a neural network during the backpropagation process. By capturing and visualizing gradient norms through hooks, it provides insights into how the gradients flow across the network layers during training. The generated graph, as shown below, illustrates the magnitude of gradients at each layer and the connections between them.
 
+![Gradient Visualization](graph.png)
 
 
 ## Features
@@ -114,10 +115,10 @@ During backpropagation, gradients are calculated as:
 
 where:
 
-- : Loss function
-- : Model parameters
-- : Activation
-- : Weighted input
+-  Loss function
+-  Model parameters
+-  Activation
+-  Weighted input
 
 This project leverages these computations to extract gradient norms for visualization.
 
