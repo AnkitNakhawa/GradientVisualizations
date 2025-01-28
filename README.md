@@ -42,12 +42,28 @@ where  is the gradient of the -th weight parameter in the layer.
 
 ### Gradient Thresholding
 
-To color the edges in the graph:
+Gradient thresholding ensures effective visualization and stability during training by limiting gradient norms to a predefined range. This strategy helps prevent both vanishing and exploding gradients. Here’s how the thresholding works:
 
-- **Green**: Gradient norm > 0.01
-- **Red**: Gradient norm <= 0.01
+1. **Gradient Clipping**:
+   Gradient norms are clipped to fall within a predefined range \([\text{min}, \text{max}]\). For example:
+   - **Clipping by Value**: If a gradient norm exceeds `max`, it is set to `max`. Similarly, if it is below `min`, it is set to `min`.
+   - **Formula**: 
+     \[
+     \text{clipped\_gradient} = \begin{cases} 
+     \text{min}, & \text{if } \text{gradient\_norm} < \text{min} \\
+     \text{max}, & \text{if } \text{gradient\_norm} > \text{max} \\
+     \text{gradient\_norm}, & \text{otherwise}
+     \end{cases}
+     \]
 
-The thresholds can be adjusted based on the specific requirements of the project.
+2. **Visualization Thresholds**:
+   - **Green Edges**: When the gradient norm is above a healthy threshold, e.g., \(0.01\), indicating sufficient gradient flow.
+   - **Red Edges**: When the gradient norm falls below the threshold \(\leq 0.01\), highlighting potential issues with vanishing gradients.
+
+3. **Gradient Flow Dynamics**:
+   By monitoring and applying these thresholds, the network's training process remains stable and interpretable. For example:
+   - Gradients that are too high (>5) may destabilize training due to exploding gradients.
+   - Gradients that are too low (<0.001) may cause the network to stop learning, as weights do not update significantly.
 
 ### Visualization Details
 
