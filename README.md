@@ -6,7 +6,6 @@ This project is designed to visualize the gradients of a neural network during t
 
 ![Gradient Visualization](graph.png)
 
-
 ## Features
 
 - **Gradient Hooks**: Automatically attach hooks to neural network layers to capture gradient norms during backpropagation.
@@ -62,16 +61,22 @@ The thresholds can be adjusted based on the specific requirements of the project
    git clone <repository_url>
    cd gradient-visualization
    ```
-2. **Install Dependencies**: Ensure you have Python and PyTorch installed. Use the following command to install additional dependencies:
+2. **Set Up Conda Environment**:
+   If you are using Conda, you can create the environment from the provided `environment.yml` file:
+   ```bash
+   conda env create -f environment.yml
+   conda activate gradient-visualization
+   ```
+3. **Install Dependencies**: Ensure you have Python and PyTorch installed. If you are not using Conda, install dependencies using the following command:
    ```bash
    pip install -r requirements.txt
    ```
-3. **Run the Training Script**: Execute the training script to capture gradients:
+4. **Run the Training Script**: Execute the training script to capture gradients:
    ```bash
    python extract.py
    ```
    This will save gradient data to `training_output.json`.
-4. **Generate Visualization**: Use the provided visualization tool to generate the graph. For example:
+5. **Generate Visualization**: Use the provided visualization tool to generate the graph. For example:
    ```bash
    python visualize.py
    ```
