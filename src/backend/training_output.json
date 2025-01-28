@@ -6,95 +6,95 @@
         },
         {
             "id": "fc2",
-            "gradient_norm": 0.00031386109185405076
+            "gradient_norm": 0.0002774745807982981
         },
         {
             "id": "fc3",
-            "gradient_norm": 0.000791976461187005
+            "gradient_norm": 0.00039049447514116764
         },
         {
             "id": "fc4",
-            "gradient_norm": 0.0011328556574881077
+            "gradient_norm": 0.00031676708022132516
         },
         {
             "id": "fc5",
-            "gradient_norm": 0.0026688447687774897
+            "gradient_norm": 0.00044937519123777747
         },
         {
             "id": "fc6",
-            "gradient_norm": 0.005209821276366711
+            "gradient_norm": 0.00047586069558747113
         },
         {
             "id": "fc7",
-            "gradient_norm": 0.010224434547126293
+            "gradient_norm": 0.0003442003217060119
         },
         {
             "id": "fc8",
-            "gradient_norm": 0.0376480408012867
+            "gradient_norm": 0.0003431137592997402
         },
         {
             "id": "fc9",
-            "gradient_norm": 0.06987264007329941
+            "gradient_norm": 0.0003077755682170391
         },
         {
             "id": "fc10",
-            "gradient_norm": 0.21590548753738403
+            "gradient_norm": 0.00022555948817171156
         }
     ],
     "edges": [
         {
             "source": "fc1",
             "target": "fc2",
-            "gradient_norm": 0.00031386109185405076,
-            "color": "red"
+            "gradient_norm": 0.0002774745807982981,
+            "color": "grey"
         },
         {
             "source": "fc2",
             "target": "fc3",
-            "gradient_norm": 0.000791976461187005,
+            "gradient_norm": 0.00039049447514116764,
             "color": "grey"
         },
         {
             "source": "fc3",
             "target": "fc4",
-            "gradient_norm": 0.0011328556574881077,
+            "gradient_norm": 0.00031676708022132516,
             "color": "grey"
         },
         {
             "source": "fc4",
             "target": "fc5",
-            "gradient_norm": 0.0026688447687774897,
+            "gradient_norm": 0.00044937519123777747,
             "color": "grey"
         },
         {
             "source": "fc5",
             "target": "fc6",
-            "gradient_norm": 0.005209821276366711,
+            "gradient_norm": 0.00047586069558747113,
             "color": "grey"
         },
         {
             "source": "fc6",
             "target": "fc7",
-            "gradient_norm": 0.010224434547126293,
+            "gradient_norm": 0.0003442003217060119,
             "color": "grey"
         },
         {
             "source": "fc7",
             "target": "fc8",
-            "gradient_norm": 0.0376480408012867,
-            "color": "green"
+            "gradient_norm": 0.0003431137592997402,
+            "color": "grey"
         },
         {
             "source": "fc8",
             "target": "fc9",
-            "gradient_norm": 0.06987264007329941,
-            "color": "green"
+            "gradient_norm": 0.0003077755682170391,
+            "color": "grey"
         },
         {
             "source": "fc9",
             "target": "fc10",
-            "gradient_norm": 0.21590548753738403,
-            "color": "green"
+            "gradient_norm": 0.00022555948817171156,
+            "color": "grey"
         }
     ]
 }
